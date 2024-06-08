@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "YxFi/Psv9yA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Brandon\\Documents\\GitHub\\Stardew\\ToolPouch\\ToolPouch\\ToolPouch.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Brandon\\.nuget\\packages\\pathoschild.stardew.modbuildconfig\\4.1.1\\pathoschild.stardew.modbuildconfig.4.1.1.nupkg.sha512",
+    "C:\\Users\\Brandon\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.30\\microsoft.windowsdesktop.app.ref.6.0.30.nupkg.sha512",
+    "C:\\Users\\Brandon\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.30\\microsoft.netcore.app.ref.6.0.30.nupkg.sha512",
+    "C:\\Users\\Brandon\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.30\\microsoft.aspnetcore.app.ref.6.0.30.nupkg.sha512"
+  ],
+  "logs": []
+}

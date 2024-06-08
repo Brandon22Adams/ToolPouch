@@ -1,0 +1,8 @@
+C:\Users\Brandon\Documents\GitHub\Stardew\ToolPouch\ToolPouch\bin\Debug\net6.0\ToolPouch.deps.json
+C:\Users\Brandon\Documents\GitHub\Stardew\ToolPouch\ToolPouch\bin\Debug\net6.0\ToolPouch.dll
+C:\Users\Brandon\Documents\GitHub\Stardew\ToolPouch\ToolPouch\obj\Debug\net6.0\ToolPouch.csproj.AssemblyReference.cache
+C:\Users\Brandon\Documents\GitHub\Stardew\ToolPouch\ToolPouch\obj\Debug\net6.0\ToolPouch.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Brandon\Documents\GitHub\Stardew\ToolPouch\ToolPouch\obj\Debug\net6.0\ToolPouch.AssemblyInfoInputs.cache
+C:\Users\Brandon\Documents\GitHub\Stardew\ToolPouch\ToolPouch\obj\Debug\net6.0\ToolPouch.AssemblyInfo.cs
+C:\Users\Brandon\Documents\GitHub\Stardew\ToolPouch\ToolPouch\obj\Debug\net6.0\ToolPouch.csproj.CoreCompileInputs.cache
+C:\Users\Brandon\Documents\GitHub\Stardew\ToolPouch\ToolPouch\obj\Debug\net6.0\ToolPouch.dll
