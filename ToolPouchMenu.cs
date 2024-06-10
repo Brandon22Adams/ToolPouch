@@ -4,8 +4,6 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.BellsAndWhistles;
 using StardewValley.Menus;
-using System;
-using System.Collections.Generic;
 
 namespace ToolPouch
 {
@@ -113,73 +111,31 @@ namespace ToolPouch
 
             if (gamepadMode)
             {
-                if (Config.HorizontalSelect)
+                if (Math.Abs(xState) > 0.5f || Math.Abs(yState) > 0.5f)
                 {
-                    //horizontal selection style
-                    if (wheelIndex <= 0) wheelIndex = 0;
-                    if (!moved && xState > 0.7f)
+                    offset = new Vector2(xState, yState);
+                    offset.Y *= -1f;
+                    offset.Normalize();
+                    float highest_dot = -1f;
+                    int tempIndex = 0;
+                    for (int j = 0; j < buttons.Count; j++)
                     {
-                        moved = true;
-                        moveAge = age;
-                        buttons[wheelIndex].deSelect();
-                        wheelIndex = (wheelIndex + 1) % buttons.Count;
+                        float dot = Vector2.Dot(value2: new Vector2((float)buttons[j].bounds.Center.X - ((float)xPositionOnScreen + (float)width / 2f), (float)buttons[j].bounds.Center.Y - ((float)yPositionOnScreen + (float)height / 2f)), value1: offset);
 
-                    }
-                    if (!moved && xState < -0.7f)
-                    {
-                        moved = true;
-                        moveAge = age;
-                        buttons[wheelIndex].deSelect();
-                        wheelIndex = wheelIndex == 0 ? buttons.Count - 1 : wheelIndex - 1;
-                    }
-                    if (moved && age - moveAge > delay)
-                    {
-                        moved = false;
-                        delay = 80;
-                    }
+                        if (dot > highest_dot)
+                        {
+                            highest_dot = dot;
+                            tempIndex = j;
 
-                    if (Math.Abs(xState) < 0.3f)
-                    {
-                        moved = false;
-                        delay = 250;
+                        }
                     }
-
-                    Monitor.Log(
-                        "\n update" +
-                        "\n age - move age = " + (age - moveAge) +
-                        "\n age = " + age +
-                        "\n delay = " + delay, LogLevel.Trace);
-
+                    buttons[wheelIndex].deSelect();
+                    wheelIndex = tempIndex;
+                    buttons[wheelIndex].select();
                 }
                 else
                 {
-                    //radial selection style
-                    if (Math.Abs(xState) > 0.5f || Math.Abs(yState) > 0.5f)
-                    {
-                        offset = new Vector2(xState, yState);
-                        offset.Y *= -1f;
-                        offset.Normalize();
-                        float highest_dot = -1f;
-                        int tempIndex = 0;
-                        for (int j = 0; j < buttons.Count; j++)
-                        {
-                            float dot = Vector2.Dot(value2: new Vector2((float)buttons[j].bounds.Center.X - ((float)xPositionOnScreen + (float)width / 2f), (float)buttons[j].bounds.Center.Y - ((float)yPositionOnScreen + (float)height / 2f)), value1: offset);
-
-                            if (dot > highest_dot)
-                            {
-                                highest_dot = dot;
-                                tempIndex = j;
-
-                            }
-                        }
-                        buttons[wheelIndex].deSelect();
-                        wheelIndex = tempIndex;
-                        buttons[wheelIndex].select();
-                    }
-                    else
-                    {
-                        Mod.swapItem(closeAndReturnSelected());
-                    }
+                    Mod.swapItem(closeAndReturnSelected());
                 }
             }
 
@@ -248,23 +204,6 @@ namespace ToolPouch
                 {
                     yPositionOnScreen -= yPositionOnScreen;
                 }
-
-                if (Config.HorizontalSelect)
-                {
-                    yPositionOnScreen -= 3 * Game1.player.GetBoundingBox().Height;
-                }
-                repositionButtons();
-            }
-        }
-
-        protected void repositionButtons()
-        {
-            if (Config.HorizontalSelect)
-            {
-                positionHorizontal();
-            }
-            else
-            {
                 positionRadial();
             }
         }
@@ -284,23 +223,6 @@ namespace ToolPouch
                 button.bounds.X = x;
                 button.bounds.Y = y;
                 if (lowestButtonY < y) lowestButtonY = y;
-            }
-        }
-        private void positionHorizontal()
-        {
-            int x;
-            int y = (yPositionOnScreen + height / 2);
-            int buttonCount = buttons.Count;
-            int spacing = 15;
-
-            for (int i = 0; i < buttonCount; i++)
-            {
-                ClickableTextureComponent button = buttons[i];
-                x = (xPositionOnScreen + width / 2) + (spacing + button.bounds.Width) * i;
-                x = x - (((buttonCount * (button.bounds.Width + spacing)) - spacing) / 2);
-
-                button.bounds.X = x;
-                button.bounds.Y = y;
             }
         }
 
@@ -338,14 +260,7 @@ namespace ToolPouch
 
             if (animProgress >= 1 && wheelIndex >= 0)
             {
-                if (Config.HorizontalSelect)
-                {
-                    SpriteText.drawStringWithScrollCenteredAt(b, buttons[wheelIndex].toolName(), xPositionOnScreen + width / 2, (yPositionOnScreen + height / 2) - buttons[wheelIndex].bounds.Height); ;
-                }
-                else
-                {
-                    SpriteText.drawStringWithScrollCenteredAt(b, buttons[wheelIndex].toolName(), xPositionOnScreen + width / 2, lowestButtonY + buttons[wheelIndex].bounds.Height + 20); ;
-                }
+                SpriteText.drawStringWithScrollCenteredAt(b, buttons[wheelIndex].toolName(), xPositionOnScreen + width / 2, lowestButtonY + buttons[wheelIndex].bounds.Height + 20);
 
             }
             Game1.EndWorldDrawInUI(b);

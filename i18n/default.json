@@ -1,0 +1,11 @@
+{ //TODO move other descriptions here
+  "pouch.description": "Use to open.^Right click in a menu with an item on your cursor to quick deposit.",
+  "error.pouch": "Unable to put ToolPouch inside of ToolPouch.",
+
+  "pouch.name": "Tool Pouch",
+
+  "upgrade.category-text": "Pouch Upgrade",
+
+  "pouch-upgrade.name": "Pouch slot upgrade",
+  "pouch-upgrade.description": "Add another space to add tools to"
+}
