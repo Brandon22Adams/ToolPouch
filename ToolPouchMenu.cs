@@ -65,6 +65,16 @@ namespace ToolPouch
                 }
             }
 
+            if (dict.Count < Config.BagCapacity)
+            {
+                buttons.Add(new ToolPouchButton(Config.BagCapacity - 1, null, Helper));
+                if (Config.BagCapacity - 1 == Game1.player.CurrentToolIndex)
+                {
+                    wheelIndex = buttons.Count - 1;
+                    buttons[wheelIndex].select();
+                }
+            }
+
             snapToPlayerPosition();
         }
 
@@ -113,7 +123,7 @@ namespace ToolPouch
             {
                 if (Math.Abs(xState) > 0.5f || Math.Abs(yState) > 0.5f)
                 {
-                    offset = new Vector2(xState, yState);
+                    offset = new Vector2(xState, yState); 
                     offset.Y *= -1f;
                     offset.Normalize();
                     float highest_dot = -1f;
@@ -129,7 +139,10 @@ namespace ToolPouch
 
                         }
                     }
-                    buttons[wheelIndex].deSelect();
+                    if(wheelIndex >= 0)
+                    {
+                        buttons[wheelIndex].deSelect();
+                    }
                     wheelIndex = tempIndex;
                     buttons[wheelIndex].select();
                 }
@@ -147,7 +160,7 @@ namespace ToolPouch
             {
                 return;
             }
-
+            
             x = (int)Utility.ModifyCoordinateFromUIScale(x);
             y = (int)Utility.ModifyCoordinateFromUIScale(y);
 
@@ -265,6 +278,5 @@ namespace ToolPouch
             }
             Game1.EndWorldDrawInUI(b);
         }
-
     }
 }

@@ -39,6 +39,10 @@ namespace ToolPouch
 
         public String toolName()
         {
+            if(tool == null)
+            {
+                return "Empty";
+            }
             return tool.DisplayName;
         }
 
@@ -48,7 +52,10 @@ namespace ToolPouch
             Vector2 vector = getVector2();
             vector.X += assetOffset;
             vector.Y += assetOffset;
-            tool.drawInMenu(b, vector, useBackdrop ? scale * 0.9f : scale, transparancy, depth);
+            if(tool != null)
+            {
+                tool.drawInMenu(b, vector, useBackdrop ? scale * 0.9f : scale, transparancy, depth);
+            }
         }
 
         public void select()

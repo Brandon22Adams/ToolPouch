@@ -164,8 +164,7 @@ namespace ToolPouch
             if (swapIndex == -1) return;
             newInventory.AddRange(farmer.Items);
 
-            Monitor.Log($"Current item id is {newInventory[currentIndex].ItemId}", LogLevel.Trace);
-            if(newInventory[currentIndex].ItemId == "Pouch")
+            if(newInventory[currentIndex] != null && newInventory[currentIndex].ItemId == "Pouch")
             {
                 Game1.showRedMessage("Pouch can't be placed inside the Pouch", true);
                 return;
@@ -175,24 +174,21 @@ namespace ToolPouch
             List<Item> pouchInventory = new List<Item>();
             for (int i = 0; i < Game1.player.Items.Count; ++i)
             {
-                Monitor.Log($"Looping {i}", LogLevel.Trace);
                 if (Game1.player.Items[i] is Pouch pouch)
                 {
                     pouchInventory.AddRange(pouch.Inventory);
-                    pouchInventory.RemoveAll(Item => Item == null);
                     newPouch = pouch;
                 }
             }
 
-            Monitor.Log($"SwapIndex {swapIndex}", LogLevel.Trace);
-            Monitor.Log($"Item at swapIndex {pouchInventory[swapIndex]}", LogLevel.Trace);
-
-            Monitor.Log($"Move {newInventory[currentIndex].Name} to pouch at index {swapIndex}", LogLevel.Trace);
-            Monitor.Log($"Move {pouchInventory[swapIndex].Name} to inventory at index {currentIndex}", LogLevel.Trace);
             Item temp = newInventory[currentIndex];
             newInventory[currentIndex] = pouchInventory[swapIndex];
             farmer.setInventory(newInventory);
             newPouch.Inventory[swapIndex] = temp;
+            if(temp == null || swapIndex == Config.BagCapacity - 1) //Sort pouch after filling with empty slot or adding to the end of the pouch
+            {
+                newPouch.Inventory.Sort();
+            }
         }
 
         private SortedDictionary<Item, int> getToolMap(List<Item> inventory)
@@ -250,7 +246,7 @@ namespace ToolPouch
                                 TextureIndex = i, // TODO: tmp
                                 DisplayName = I18n.Pouch_Name(),
                                 Description = I18n.Pouch_Description(),
-                                Capacity = 9 * (i + 1),
+                                Capacity = Config.BagCapacity * (i + 1),
                                 MaxUpgrades = i,
                             });
                     }
