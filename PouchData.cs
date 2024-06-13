@@ -14,6 +14,5 @@ namespace ToolPouch
         public int TextureIndex { get; set; } = 0;
 
         public int Capacity { get; set; }
-        public int MaxUpgrades { get; set; }
     }
 }

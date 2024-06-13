@@ -9,6 +9,8 @@ using StardewValley.GameData.Shops;
 using StardewValley.Menus;
 using StardewValley.ItemTypeDefinitions;
 using StardewValley.Inventories;
+using System.Net.Mail;
+using StardewValley.Network.NetEvents;
 
 
 namespace ToolPouch
@@ -39,6 +41,7 @@ namespace ToolPouch
             Helper.Events.Content.AssetRequested += assetRequested;
             Helper.Events.Input.ButtonPressed += OnButtonPressed;
             Helper.Events.Input.ButtonReleased += OnButtonReleased;
+            Helper.Events.GameLoop.DayStarted += dayStarted;
             //support for generic mod menu
             Helper.Events.GameLoop.GameLaunched += onLaunched;
             Helper.Events.GameLoop.SaveLoaded += reinit;
@@ -50,6 +53,7 @@ namespace ToolPouch
             ItemRegistry.ItemTypes.Add(def);
             Helper.Reflection.GetField<Dictionary<string, IItemDataDefinition>>(typeof(ItemRegistry), "IdentifierLookup").GetValue()[def.Identifier] = def;
         }
+
 
         private void onUpdate(object sender, StardewModdingAPI.Events.UpdateTickedEventArgs e)
         {
@@ -129,12 +133,9 @@ namespace ToolPouch
                     if (Game1.player.Items[i] is Pouch pouch)
                     {
                         inventory.AddRange(pouch.Inventory);
-                        if(inventory.Any(i => i != null))
-                        {
-                            Monitor.Log($"{farmer.Name} opening ToolPouch menu with {e.Button}.", LogLevel.Trace);
-                            toolPouchMenu.updateToolList(getToolMap(inventory));
-                            Game1.activeClickableMenu = toolPouchMenu;
-                        }
+                        Monitor.Log($"{farmer.Name} opening ToolPouch menu with {e.Button}.", LogLevel.Trace);
+                        toolPouchMenu.updateToolList(getToolMap(inventory));
+                        Game1.activeClickableMenu = toolPouchMenu;
                     }
                 }
             }
@@ -221,12 +222,12 @@ namespace ToolPouch
             var api = Helper.ModRegistry.GetApi<GenericModConfigMenuAPI>("spacechase0.GenericModConfigMenu");
             api.RegisterModConfig(ModManifest, () => Config = new ModConfig(), () => Helper.WriteConfig(Config));
             api.SetDefaultIngameOptinValue(ModManifest, true);
-            api.RegisterLabel(ModManifest, "ToolPouch Options", "Configure to your Liking");
-            api.RegisterSimpleOption(ModManifest, "Use Backdrop", "Use fancy Backdrop for better Visibilaty", () => Config.UseBackdrop, (bool val) => Config.UseBackdrop = val);
-            api.RegisterClampedOption(ModManifest, "Animation Time (Milliseconds)", "Duration off the opening Animation", () => Config.AnimationMilliseconds, (int val) => Config.AnimationMilliseconds = val, 0, 500);
-            api.RegisterSimpleOption(ModManifest, "Select with Leftstick", "Use left Stick of Gamepad to select Tool", () => Config.LeftStickSelection, (bool val) => Config.LeftStickSelection = val);
-            api.RegisterSimpleOption(ModManifest, "Hover Tool selection", $"hold {Config.ToggleKey} and hover over item, stop holding to select", () => Config.HoverSelects, (bool val) => Config.HoverSelects = val);
-            api.RegisterSimpleOption(ModManifest, "MenuKey", "Key for opening the ToolPouch Menu (Keyboard)", () => Config.ToggleKey, (SButton val) => Config.ToggleKey = val);
+            api.RegisterLabel(ModManifest, I18n.Options_Title(), I18n.Options_Description());
+            api.RegisterSimpleOption(ModManifest, I18n.Backdrop_Title(), I18n.Backdrop_Description(), () => Config.UseBackdrop, (bool val) => Config.UseBackdrop = val);
+            api.RegisterClampedOption(ModManifest, I18n.Animation_Title(), I18n.Animation_Description(), () => Config.AnimationMilliseconds, (int val) => Config.AnimationMilliseconds = val, 0, 500);
+            api.RegisterSimpleOption(ModManifest, I18n.GamepadSelect_Title(), I18n.GamepadSelect_Description(), () => Config.LeftStickSelection, (bool val) => Config.LeftStickSelection = val);
+            api.RegisterSimpleOption(ModManifest, I18n.Hover_Title(), $"{I18n.Hover_Description1()} {Config.ToggleKey} {I18n.Hover_Description2()}", () => Config.HoverSelects, (bool val) => Config.HoverSelects = val);
+            api.RegisterSimpleOption(ModManifest, I18n.Menu_Title(), I18n.Menu_Description(), () => Config.ToggleKey, (SButton val) => Config.ToggleKey = val);
 
             api.RegisterLabel(ModManifest, "", "");
         }
@@ -243,11 +244,10 @@ namespace ToolPouch
                         ret.Add($"Pouch",
                             new PouchData()
                             {
-                                TextureIndex = i, // TODO: tmp
+                                TextureIndex = i,
                                 DisplayName = I18n.Pouch_Name(),
                                 Description = I18n.Pouch_Description(),
                                 Capacity = Config.BagCapacity * (i + 1),
-                                MaxUpgrades = i,
                             });
                     }
                     return ret;
@@ -257,24 +257,21 @@ namespace ToolPouch
             {
                 e.LoadFromModFile<Texture2D>("assets/pouch.png", StardewModdingAPI.Events.AssetLoadPriority.Low);
             }
-            else if (e.NameWithoutLocale.IsEquivalentTo($"{ModManifest.UniqueID}/upgrades.png"))
-            {
-                e.LoadFromModFile<Texture2D>("assets/upgrades.png", StardewModdingAPI.Events.AssetLoadPriority.Low);
-            }
-            else if (e.NameWithoutLocale.IsEquivalentTo("Data/Shops"))
+            else if (e.NameWithoutLocale.IsEquivalentTo("Data/Mail"))
             {
                 e.Edit((asset) =>
                 {
-                    var data = asset.AsDictionary<string, ShopData>().Data;
-                    data["Blacksmith"].Items.Add(new()
-                    {
-                        Id = "Pouch",
-                        Price = 1,
-                        TradeItemId = null,
-                        TradeItemAmount = 0,
-                        ItemId = "(CWZ)Pouch",
-                    });
+                    var data = asset.AsDictionary<string, string>().Data;
+                    data.Add("CodeWordZ.ToolPouch", I18n.Letter_Body() + " %item object (CWZ)Pouch 1 %%[#]" + I18n.Letter_Signoff());
                 });
+            }
+        }
+        private void dayStarted(object sender, EventArgs e)
+        {
+            Game1.player.showToolUpgradeAvailability();
+            if ((Game1.player.toolBeingUpgraded.Value != null || Game1.player.hasCompletedCommunityCenter()) && !Game1.player.hasOrWillReceiveMail("CodeWordZ.ToolPouch"))
+            {
+                Game1.mailbox.Add("CodeWordZ.ToolPouch");
             }
         }
     }

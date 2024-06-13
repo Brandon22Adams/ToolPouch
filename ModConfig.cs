@@ -11,8 +11,6 @@ namespace ToolPouch
         public bool LeftStickSelection { get; set; } = false;
         public bool HoverSelects { get; set; } = false;
         public SButton ToggleKey { get; set; } = SButton.LeftAlt;
-        public List<string> BlacklistNames { get; set; } = new List<string>();
-        public List<int> BlacklistIds { get; set; } = new List<int>();
 
     }
 }

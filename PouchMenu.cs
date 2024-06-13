@@ -4,8 +4,8 @@ using Microsoft.Xna.Framework.Input;
 using SpaceCore.UI;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.GameData.MakeoverOutfits;
 using StardewValley.Menus;
-using System.Reflection.Metadata.Ecma335;
 
 namespace ToolPouch
 {
@@ -14,7 +14,6 @@ namespace ToolPouch
         private class SlotUserData
         {
             public Func<Item, bool> Filter;
-            public bool IsMainInventory { get; set; } = true;
             public int Slot { get; set; }
         }
 
@@ -36,16 +35,8 @@ namespace ToolPouch
 
             invMenu = new(Game1.uiViewport.Width / 2 - 72 * 6 + 8, yPositionOnScreen + height - 64 * 3 - 24, true);
 
-            for (int ii = 0, ic = 0; ii < Game1.player.Items.Count; ++ii, ++ic)
-            {
-                if (Game1.player.Items[ii] is Pouch s && s.isOpen.Value)
-                {
-                    // TODO: Gamepad support
-                    invMenu.inventory[ic].visible = false;
-                }
-            }
-
             ui = new();
+
             StaticContainer container = new()
             {
                 LocalPosition = new(xPositionOnScreen, yPositionOnScreen),
@@ -71,9 +62,12 @@ namespace ToolPouch
                         //slotClicked = (elem as ItemSlot);
                     };
                     slot.SecondaryCallback = slot.Callback;
-                    slot.UserData = new SlotUserData() { Slot = i, Filter = (item) =>
+                    slot.UserData = new SlotUserData()
                     {
-                        if(item is Pouch)
+                        Slot = i,
+                        Filter = (item) =>
+                    {
+                        if (item is Pouch)
                         {
                             Game1.addHUDMessage(new HUDMessage(I18n.Error_Pouch(), HUDMessage.error_type));
                             return false;
@@ -85,47 +79,6 @@ namespace ToolPouch
                     slots.Add(slot);
                 }
             }
-
-            for (int i = 0; i < pouch.Upgrades.Count; ++i)
-            {
-                int ix = -4;
-                int iy = i * 88 + IClickableMenu.borderWidth / 2;
-
-                var slot = new ItemSlot()
-                {
-                    LocalPosition = new(ix, iy),
-                    Item = pouch.Upgrades[i],
-                };
-                slot.Callback = (elem) =>
-                {
-                    slotClicked = (elem as ItemSlot);
-                };
-                slot.SecondaryCallback = (elem) =>
-                {
-                    slotClicked = (elem as ItemSlot);
-
-                    var theMenu = Game1.activeClickableMenu;
-                    while (theMenu.GetChildMenu() != null)
-                    {
-                        theMenu = theMenu.GetChildMenu();
-                    }
-                    // TODO upgrades?
-                    //theMenu.SetChildMenu(ModEntry.GetPouchUpgradeMenu(pouch, (elem as ItemSlot).Item));
-                };
-                slot.UserData = new SlotUserData()
-                {
-                    IsMainInventory = false,
-                    Slot = i,
-                    // TODO upgrades?
-                    Filter = (item) =>
-                    {
-                        return item == null;
-                    }
-                };
-                container.AddChild(slot);
-                slots.Add(slot);
-            }
-
         }
 
         public override void receiveLeftClick(int x, int y, bool playSound = true)
@@ -266,20 +219,14 @@ namespace ToolPouch
             if (slotClicked != null)
             {
                 var data = (slotClicked.UserData as SlotUserData);
-                if (data.IsMainInventory)
-                    pouch.Inventory[data.Slot] = slotClicked.Item;
-                else
-                    pouch.Upgrades[data.Slot] = slotClicked.Item;
+                pouch.Inventory[data.Slot] = slotClicked.Item;
                 slotClicked = null;
             }
 
             foreach (var slot in slots)
             {
                 var data = (slot.UserData as SlotUserData);
-                if (data.IsMainInventory)
-                    slot.Item = pouch.Inventory[data.Slot];
-                else
-                    slot.Item = pouch.Upgrades[data.Slot];
+                 slot.Item = pouch.Inventory[data.Slot];
             }
 
             ui.Update();

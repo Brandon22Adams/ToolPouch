@@ -19,11 +19,9 @@ namespace ToolPouch
         public override string TypeDefinitionId => "(CWZ)";
 
         public Inventory Inventory => netInventory.Value;
-        public Inventory Upgrades => netUpgrades.Value;
 
         public readonly NetString pouchName = new();
         public readonly NetRef<Inventory> netInventory = new(new());
-        public readonly NetRef<Inventory> netUpgrades = new(new());
 
         [XmlIgnore]
         public readonly NetBool isOpen = new(false);
@@ -32,7 +30,6 @@ namespace ToolPouch
         {
             NetFields.AddField(pouchName)
                 .AddField(netInventory)
-                .AddField(netUpgrades)
                 .AddField(isOpen);
 
             InstantUse = true;
@@ -44,8 +41,6 @@ namespace ToolPouch
             ReloadData();
             while (Inventory.Count < PouchDataDefinition.GetSpecificData(ItemId).Capacity)
                 Inventory.Add(null);
-            while (Upgrades.Count < PouchDataDefinition.GetSpecificData(ItemId).MaxUpgrades)
-                Upgrades.Add(null);
         }
 
         private string GetDisplayName()
@@ -147,16 +142,10 @@ namespace ToolPouch
 
             while (Inventory.Count < PouchDataDefinition.GetSpecificData(ItemId).Capacity)
                 Inventory.Add(null);
-            while (Upgrades.Count < PouchDataDefinition.GetSpecificData(ItemId).MaxUpgrades)
-                Upgrades.Add(null);
 
             for (int i = 0; i < Inventory.Count; ++i)
             {
                 Inventory[i] = pouch.Inventory[i]?.getOne();
-            }
-            for (int i = 0; i < Upgrades.Count; ++i)
-            {
-                Upgrades[i] = pouch.Upgrades[i]?.getOne();
             }
         }
 
@@ -181,9 +170,6 @@ namespace ToolPouch
                 return false;
 
             if (!ForEachItemHelper.ApplyToList(Inventory, handler, true))
-                return false;
-
-            if (!ForEachItemHelper.ApplyToList(Upgrades, handler, true))
                 return false;
 
             return true;
