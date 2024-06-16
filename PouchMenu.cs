@@ -2,9 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SpaceCore.UI;
-using StardewModdingAPI;
 using StardewValley;
-using StardewValley.GameData.MakeoverOutfits;
 using StardewValley.Menus;
 
 namespace ToolPouch
@@ -57,10 +55,6 @@ namespace ToolPouch
                         Item = pouch.Inventory[i],
                         BoxIsThin = true,
                     };
-                    slot.Callback = (elem) =>
-                    {
-                        //slotClicked = (elem as ItemSlot);
-                    };
                     slot.SecondaryCallback = slot.Callback;
                     slot.UserData = new SlotUserData()
                     {
@@ -95,10 +89,11 @@ namespace ToolPouch
                 if (invMenu.actualInventory[slotNum] == null)
                     break;
                 if (invMenu.actualInventory[slotNum] is Pouch)
+                {
+                    Game1.addHUDMessage(new HUDMessage(I18n.Error_Pouch(), HUDMessage.error_type));
                     break;
-
+                }
                 invMenu.actualInventory[slotNum] = pouch.Inventory.DepositItem(invMenu.actualInventory[slotNum]);
-                Game1.playSound("dwop");
                 break;
             }
 
@@ -131,8 +126,13 @@ namespace ToolPouch
                     continue;
                 if (invMenu.actualInventory[slotNum] == null)
                     break;
+                if (invMenu.actualInventory[slotNum] is Pouch)
+                {
+                    Game1.addHUDMessage(new HUDMessage(I18n.Error_Pouch(), HUDMessage.error_type));
+                    break;
+                }
 
-                if (invMenu.actualInventory[slotNum].Stack > 1 && pouch.Inventory.Last() == null) // Stack of items
+                    if (invMenu.actualInventory[slotNum].Stack > 1 && pouch.Inventory.Last() == null) // Stack of items
                 {
                     Item grabHalf = invMenu.actualInventory[slotNum].getOne();
                     if (Keyboard.GetState().IsKeyDown(Keys.LeftShift)) // Move half

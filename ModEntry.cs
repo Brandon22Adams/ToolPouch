@@ -11,6 +11,8 @@ using StardewValley.ItemTypeDefinitions;
 using StardewValley.Inventories;
 using System.Net.Mail;
 using StardewValley.Network.NetEvents;
+using StardewModdingAPI.Utilities;
+using System.Text.Json;
 
 
 namespace ToolPouch
@@ -19,16 +21,17 @@ namespace ToolPouch
     {
         public static ModEntry instance;
 
-        private ToolPouchMenu toolPouchMenu;
+        private PerScreen<ToolPouchMenu> toolPouchMenu;
 
         ModConfig Config;
 
-
-        private static Pouch toOpen;
-        public static void QueueOpeningPouch(Pouch pouch)
+        private static PerScreen<Pouch> toOpen;
+        public static void QueueOpeningPouch(PerScreen<Pouch> pouch)
         {
-            if (!pouch.isOpen.Value)
+            if (!pouch.Value.isOpen.Value)
+            {
                 toOpen = pouch;
+            }
         }
 
 
@@ -36,7 +39,6 @@ namespace ToolPouch
         {
             instance = this;
             I18n.Init(Helper.Translation);
-
             Helper.Events.GameLoop.UpdateTicked += onUpdate;
             Helper.Events.Content.AssetRequested += assetRequested;
             Helper.Events.Input.ButtonPressed += OnButtonPressed;
@@ -47,7 +49,7 @@ namespace ToolPouch
             Helper.Events.GameLoop.SaveLoaded += reinit;
 
             Config = Helper.ReadConfig<ModConfig>();
-            toolPouchMenu = new ToolPouchMenu(Helper, this, Config, Monitor);
+            setPerScreenToolPouchMenu(new ToolPouchMenu(Helper, this, Config, Monitor));
 
             var def = new PouchDataDefinition();
             ItemRegistry.ItemTypes.Add(def);
@@ -57,9 +59,11 @@ namespace ToolPouch
 
         private void onUpdate(object sender, StardewModdingAPI.Events.UpdateTickedEventArgs e)
         {
-            if (toOpen != null)
+            if (toOpen != null && toOpen.Value != null && !Config.DisableOpeningPouchOutsideOfInventory)
             {
-                var menu = new PouchMenu(toOpen);
+
+                Monitor.Log($"{Context.ScreenId} is trying to open the pouch with id {toOpen.Value.pouchScreenID}", LogLevel.Trace);
+                var menu = new PouchMenu(toOpen.Value);
 
                 if (Game1.activeClickableMenu == null)
                     Game1.activeClickableMenu = menu;
@@ -80,12 +84,12 @@ namespace ToolPouch
         private void reinit(object sender, SaveLoadedEventArgs e)
         {
             Config = Helper.ReadConfig<ModConfig>();
-            toolPouchMenu = new ToolPouchMenu(Helper, this, Config, Monitor);
+            setPerScreenToolPouchMenu(new ToolPouchMenu(Helper, this, Config, Monitor));
         }
 
         private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
         {
-            if(e.Button == SButton.MouseRight) // Open pouch or deposit in pouch
+            if (e.Button == SButton.MouseRight) // Open pouch menu
             {
                 if (Game1.activeClickableMenu is ShopMenu shop)
                 {
@@ -96,14 +100,7 @@ namespace ToolPouch
                             int i = shop.inventory.inventory.IndexOf(slot);
                             if (shop.inventory.actualInventory[i] is Pouch pouch)
                             {
-                                if (shop.heldItem is Item item)
-                                {
-                                    shop.heldItem = pouch.quickDeposit(item);
-                                }
-                                else
-                                {
-                                    Game1.activeClickableMenu.SetChildMenu(new PouchMenu(pouch));
-                                }
+                                Game1.activeClickableMenu.SetChildMenu(new PouchMenu(pouch));
                                 Helper.Input.Suppress(e.Button);
                                 break;
                             }
@@ -114,18 +111,19 @@ namespace ToolPouch
 
             if (canOpenMenu(e.Button))
             {
-                if (Game1.activeClickableMenu != null)
+                if (Game1.activeClickableMenu != null) // Close Tool Selection Wheel
                 {
-                    if (Game1.activeClickableMenu == toolPouchMenu)
+                    if (Game1.activeClickableMenu == toolPouchMenu.Value)
                     {
                         Monitor.Log("closing menu", LogLevel.Trace);
-                        toolPouchMenu.closeAndReturnSelected();
+                        toolPouchMenu.Value.closeAndReturnSelected();
                         return;
                     }
                     return;
                 }
+                setPerScreenToolPouchMenu(new ToolPouchMenu(Helper, this, Config, Monitor));
 
-                //open ToolPouch menu
+                //Open Tool Selection wheel
                 Farmer farmer = Game1.player;
                 List<Item> inventory = new List<Item>();
                 for (int i = 0; i < Game1.player.Items.Count; ++i)
@@ -133,9 +131,9 @@ namespace ToolPouch
                     if (Game1.player.Items[i] is Pouch pouch)
                     {
                         inventory.AddRange(pouch.Inventory);
-                        Monitor.Log($"{farmer.Name} opening ToolPouch menu with {e.Button}.", LogLevel.Trace);
-                        toolPouchMenu.updateToolList(getToolMap(inventory));
-                        Game1.activeClickableMenu = toolPouchMenu;
+                        Monitor.Log($"ContextID {Context.ScreenId} Farmer {farmer.Name} with button {e.Button}", LogLevel.Trace);
+                        toolPouchMenu.Value.updateToolList(getToolMap(inventory));
+                        Game1.activeClickableMenu = toolPouchMenu.Value;
                     }
                 }
             }
@@ -144,14 +142,21 @@ namespace ToolPouch
         private void OnButtonReleased(object sender, ButtonReleasedEventArgs e)
         {
             // ignore if player hasn't loaded a save yet
-            if (!(canOpenMenu(e.Button) && Game1.activeClickableMenu == toolPouchMenu)) return;
+            if (!(canOpenMenu(e.Button) && Game1.activeClickableMenu == toolPouchMenu.Value)) return;
             //placeholder for hold config
             if (Config.HoverSelects && e.Button != SButton.LeftStick) swapItem();
         }
 
+        private void setPerScreenToolPouchMenu(ToolPouchMenu menu)
+        {
+            PerScreen<ToolPouchMenu> perScreenMenu = new PerScreen<ToolPouchMenu>();
+            perScreenMenu.Value = menu;
+            toolPouchMenu = perScreenMenu;
+        }
+
         public void swapItem()
         {
-            int swapIndex = toolPouchMenu.closeAndReturnSelected();
+            int swapIndex = toolPouchMenu.Value.closeAndReturnSelected();
             Monitor.Log($"selected index is {swapIndex}", LogLevel.Trace);
             if (swapIndex == -1) return;
             swapItem(swapIndex);
@@ -167,7 +172,7 @@ namespace ToolPouch
 
             if(newInventory[currentIndex] != null && newInventory[currentIndex].ItemId == "Pouch")
             {
-                Game1.showRedMessage("Pouch can't be placed inside the Pouch", true);
+                Game1.showRedMessage(I18n.Error_Pouch(), true);
                 return;
             }
 
@@ -268,10 +273,12 @@ namespace ToolPouch
         }
         private void dayStarted(object sender, EventArgs e)
         {
-            Game1.player.showToolUpgradeAvailability();
-            if ((Game1.player.toolBeingUpgraded.Value != null || Game1.player.hasCompletedCommunityCenter()) && !Game1.player.hasOrWillReceiveMail("CodeWordZ.ToolPouch"))
+            foreach (Farmer farmer in Game1.getOnlineFarmers())
             {
-                Game1.mailbox.Add("CodeWordZ.ToolPouch");
+                if ((farmer.toolBeingUpgraded.Value != null || farmer.hasCompletedCommunityCenter()) && !farmer.hasOrWillReceiveMail("CodeWordZ.ToolPouch"))
+                {
+                    farmer.mailbox.Add("CodeWordZ.ToolPouch");
+                }
             }
         }
     }

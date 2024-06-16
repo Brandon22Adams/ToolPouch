@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
+using StardewModdingAPI;
+using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Delegates;
 using StardewValley.Internal;
@@ -15,6 +17,7 @@ namespace ToolPouch
     {
         public override string DisplayName => GetDisplayName();
         public string Description { get; set; }
+        public long pouchScreenID = 0;
 
         public override string TypeDefinitionId => "(CWZ)";
 
@@ -73,38 +76,11 @@ namespace ToolPouch
 
         public override StardewValley.Object attach(StardewValley.Object o)
         {
-            if (o == null)
-            {
-                ModEntry.QueueOpeningPouch(this);
-                return null;
-            }
-            else
-                return (StardewValley.Object)quickDeposit(o);
-        }
-
-        public Item quickDeposit(Item item)
-        {
-            for (int i = 0; i < Inventory.Count; ++i)
-            {
-                if (Inventory[i]?.canStackWith(item) ?? false)
-                {
-                    int left = Inventory[i].addToStack(item);
-                    if (left <= 0)
-                        return null;
-                    item.Stack = left;
-                }
-            }
-
-            for (int i = 0; i < Inventory.Count; ++i)
-            {
-                if (Inventory[i] == null)
-                {
-                    Inventory[i] = item;
-                    return null;
-                }
-            }
-
-            return item;
+            PerScreen<Pouch> perScreenPouch = new PerScreen<Pouch>();
+            perScreenPouch.Value = this;
+            perScreenPouch.Value.pouchScreenID = Context.ScreenId;
+            ModEntry.QueueOpeningPouch(perScreenPouch);
+            return null;
         }
 
         public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow)
@@ -123,8 +99,10 @@ namespace ToolPouch
 
         public override void DoFunction(GameLocation location, int x, int y, int power, Farmer who)
         {
-            ModEntry.QueueOpeningPouch(this);
-            //who.forceCanMove();
+            PerScreen<Pouch> perScreenPouch = new PerScreen<Pouch>();
+            perScreenPouch.Value = this;
+            perScreenPouch.Value.pouchScreenID = Context.ScreenId;
+            ModEntry.QueueOpeningPouch(perScreenPouch);
         }
 
         protected override Item GetOneNew()
