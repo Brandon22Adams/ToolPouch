@@ -44,6 +44,7 @@ namespace ToolPouch
             Helper.Events.Input.ButtonPressed += OnButtonPressed;
             Helper.Events.Input.ButtonReleased += OnButtonReleased;
             Helper.Events.GameLoop.DayStarted += dayStarted;
+            Helper.Events.GameLoop.DayEnding += dayEnded;
             //support for generic mod menu
             Helper.Events.GameLoop.GameLaunched += onLaunched;
             Helper.Events.GameLoop.SaveLoaded += reinit;
@@ -61,8 +62,6 @@ namespace ToolPouch
         {
             if (toOpen != null && toOpen.Value != null && !Config.DisableOpeningPouchOutsideOfInventory)
             {
-
-                Monitor.Log($"{Context.ScreenId} is trying to open the pouch with id {toOpen.Value.pouchScreenID}", LogLevel.Trace);
                 var menu = new PouchMenu(toOpen.Value);
 
                 if (Game1.activeClickableMenu == null)
@@ -141,10 +140,8 @@ namespace ToolPouch
 
         private void OnButtonReleased(object sender, ButtonReleasedEventArgs e)
         {
-            // ignore if player hasn't loaded a save yet
             if (!(canOpenMenu(e.Button) && Game1.activeClickableMenu == toolPouchMenu.Value)) return;
-            //placeholder for hold config
-            if (Config.HoverSelects && e.Button != SButton.LeftStick) swapItem();
+            if (Config.HoverSelects && e.Button != Config.ControllerToggleKey) swapItem();
         }
 
         private void setPerScreenToolPouchMenu(ToolPouchMenu menu)
@@ -172,8 +169,20 @@ namespace ToolPouch
 
             if(newInventory[currentIndex] != null && newInventory[currentIndex].ItemId == "Pouch")
             {
-                Game1.showRedMessage(I18n.Error_Pouch(), true);
-                return;
+                currentIndex = -1;
+                for (int i = 0; i < newInventory.Count; ++i)
+                {
+                    if (newInventory[i] == null)
+                    {
+                        currentIndex = i;
+                        break;
+                    }
+                }
+                if (currentIndex == -1)
+                {
+                    Game1.showRedMessage(I18n.Error_Pouch(), true);
+                    return;
+                }
             }
 
             Pouch newPouch = null;
@@ -191,7 +200,8 @@ namespace ToolPouch
             newInventory[currentIndex] = pouchInventory[swapIndex];
             farmer.setInventory(newInventory);
             newPouch.Inventory[swapIndex] = temp;
-            if(temp == null || swapIndex == Config.BagCapacity - 1) //Sort pouch after filling with empty slot or adding to the end of the pouch
+            farmer.CurrentToolIndex = currentIndex;
+            if (temp == null || swapIndex == Config.BagCapacity - 1) //Sort pouch after filling with empty slot or adding to the end of the pouch
             {
                 newPouch.Inventory.Sort();
             }
@@ -205,6 +215,10 @@ namespace ToolPouch
             {
                 if(item != null)
                 {
+                    if (item.Name == null)
+                    {
+                        item.Name = "tempPouchID" + count.ToString();
+                    }
                     toolMap.Add(item, count);
                     count++;
                 }
@@ -215,7 +229,7 @@ namespace ToolPouch
         private bool canOpenMenu(SButton b)
         {
             bool using_tool = Game1.player.UsingTool;
-            return (Context.IsWorldReady && !using_tool && (b.Equals(Config.ToggleKey) | b.Equals(SButton.LeftStick)));
+            return (Context.IsWorldReady && !using_tool && (b.Equals(Config.ToggleKey) | b.Equals(Config.ControllerToggleKey)));
         }
 
         private void onLaunched(object sender, GameLaunchedEventArgs e)
@@ -233,6 +247,7 @@ namespace ToolPouch
             api.RegisterSimpleOption(ModManifest, I18n.GamepadSelect_Title(), I18n.GamepadSelect_Description(), () => Config.LeftStickSelection, (bool val) => Config.LeftStickSelection = val);
             api.RegisterSimpleOption(ModManifest, I18n.Hover_Title(), $"{I18n.Hover_Description1()} {Config.ToggleKey} {I18n.Hover_Description2()}", () => Config.HoverSelects, (bool val) => Config.HoverSelects = val);
             api.RegisterSimpleOption(ModManifest, I18n.Menu_Title(), I18n.Menu_Description(), () => Config.ToggleKey, (SButton val) => Config.ToggleKey = val);
+            api.RegisterSimpleOption(ModManifest, I18n.GamepadMenu_Title(), I18n.GamepadMenu_Description(), () => Config.ControllerToggleKey, (SButton val) => Config.ControllerToggleKey = val);
 
             api.RegisterLabel(ModManifest, "", "");
         }
@@ -275,9 +290,34 @@ namespace ToolPouch
         {
             foreach (Farmer farmer in Game1.getOnlineFarmers())
             {
-                if ((farmer.toolBeingUpgraded.Value != null || farmer.hasCompletedCommunityCenter()) && !farmer.hasOrWillReceiveMail("CodeWordZ.ToolPouch"))
+                if (!farmer.hasOrWillReceiveMail("CodeWordZ.ToolPouch"))
                 {
-                    farmer.mailbox.Add("CodeWordZ.ToolPouch");
+                    bool upgradedToolInInventory = false;
+                    for (int i = 0; i < farmer.Items.Count; i++)
+                    {
+                        if (farmer.Items[i] != null && farmer.Items[i] is Tool && (farmer.Items[i] as Tool).UpgradeLevel > 0)
+                        {
+                            upgradedToolInInventory = true;
+                        }
+                    }
+                    if (upgradedToolInInventory)
+                    {
+                        farmer.mailbox.Add("CodeWordZ.ToolPouch");
+                    }
+                }
+            }
+        }
+
+        private void dayEnded(object sender, EventArgs e)
+        {
+            foreach (Farmer farmer in Game1.getOnlineFarmers())
+            {
+                for (int i = 0; i < farmer.Items.Count; ++i)
+                {
+                    if (farmer.Items[i] is Pouch pouch)
+                    {
+                        farmer.team.globalInventories.Add("pouch", pouch.Inventory);
+                    }
                 }
             }
         }

@@ -10,7 +10,7 @@
   "options.title": "ToolPouch Options",
   "options.description": "Configure to your liking",
   "backdrop.title": "Use Backdrop",
-  "backdrop.description": "Use backdrop for better visibilaty",
+  "backdrop.description": "Use backdrop for better visibility",
   "animation.title": "Animation time (milliseconds)",
   "animation.description": "Duration of the opening animation",
   "gamepadSelect.title": "Select with leftstick",
@@ -19,5 +19,7 @@
   "hover.description1": "Hold",
   "hover.description2": "and hover over item, stop holding to select",
   "menu.title": "MenuKey",
-  "menu.description": "Key for opening the ToolPouch menu (Keyboard)"
+  "menu.description": "Key for opening the ToolPouch menu (Keyboard)",
+  "gamepadMenu.title": "MenuKey",
+  "gamepadMenu.description": "Key for opening the ToolPouch menu (Gamepad)"
 }

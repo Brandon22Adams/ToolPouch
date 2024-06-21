@@ -33,6 +33,17 @@ namespace ToolPouch
 
             invMenu = new(Game1.uiViewport.Width / 2 - 72 * 6 + 8, yPositionOnScreen + height - 64 * 3 - 24, true);
 
+            /* From SatchelMenu.cs What is this doing and what am I missing?
+            for (int ii = 0, ic = 0; ii < Game1.player.Items.Count; ++ii, ++ic)
+            {
+                if (Game1.player.Items[ii] is Satchel s && s.isOpen.Value)
+                {
+                    // TODO: Gamepad support
+                    invMenu.inventory[ic].visible = false;
+                }
+            }
+            */
+
             ui = new();
 
             StaticContainer container = new()

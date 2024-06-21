@@ -12,6 +12,8 @@ namespace ToolPouch
         public bool HoverSelects { get; set; } = false;
         public SButton ToggleKey { get; set; } = SButton.LeftAlt;
 
+        public SButton ControllerToggleKey { get; set; } = SButton.LeftStick;
+
         public bool DisableOpeningPouchOutsideOfInventory = false;
 
     }
