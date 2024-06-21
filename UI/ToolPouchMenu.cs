@@ -5,7 +5,7 @@ using StardewValley;
 using StardewValley.BellsAndWhistles;
 using StardewValley.Menus;
 
-namespace ToolPouch
+namespace ToolPouch.UI
 {
     internal class ToolPouchMenu : IClickableMenu
     {
@@ -40,8 +40,8 @@ namespace ToolPouch
 
             width = 256;
             height = 256;
-            xPositionOnScreen = (int)((float)(Game1.viewport.Width / 2) - (float)width / 2f);
-            yPositionOnScreen = (int)((float)(Game1.viewport.Height / 2) - (float)height / 2f);
+            xPositionOnScreen = (int)(Game1.viewport.Width / 2 - width / 2f);
+            yPositionOnScreen = (int)(Game1.viewport.Height / 2 - height / 2f);
             snapToPlayerPosition();
         }
 
@@ -94,12 +94,12 @@ namespace ToolPouch
             }
             else if (animtime > 0)
             {
-                animProgress = (float)age / (float)animtime;
+                animProgress = age / (float)animtime;
             }
             if (wheelIndex >= 0) buttons[wheelIndex].select();
 
             snapToPlayerPosition();
-            Vector2 offset = default(Vector2);
+            Vector2 offset = default;
             float xState = 0;
             float yState = 0;
 
@@ -123,14 +123,14 @@ namespace ToolPouch
             {
                 if (Math.Abs(xState) > 0.5f || Math.Abs(yState) > 0.5f)
                 {
-                    offset = new Vector2(xState, yState); 
+                    offset = new Vector2(xState, yState);
                     offset.Y *= -1f;
                     offset.Normalize();
                     float highest_dot = -1f;
                     int tempIndex = 0;
                     for (int j = 0; j < buttons.Count; j++)
                     {
-                        float dot = Vector2.Dot(value2: new Vector2((float)buttons[j].bounds.Center.X - ((float)xPositionOnScreen + (float)width / 2f), (float)buttons[j].bounds.Center.Y - ((float)yPositionOnScreen + (float)height / 2f)), value1: offset);
+                        float dot = Vector2.Dot(value2: new Vector2(buttons[j].bounds.Center.X - (xPositionOnScreen + width / 2f), buttons[j].bounds.Center.Y - (yPositionOnScreen + height / 2f)), value1: offset);
 
                         if (dot > highest_dot)
                         {
@@ -139,7 +139,7 @@ namespace ToolPouch
 
                         }
                     }
-                    if(wheelIndex >= 0)
+                    if (wheelIndex >= 0)
                     {
                         buttons[wheelIndex].deSelect();
                     }
@@ -160,7 +160,7 @@ namespace ToolPouch
             {
                 return;
             }
-            
+
             x = (int)Utility.ModifyCoordinateFromUIScale(x);
             y = (int)Utility.ModifyCoordinateFromUIScale(y);
 
@@ -198,7 +198,7 @@ namespace ToolPouch
         {
             if (Game1.player != null)
             {
-                Vector2 player_position = Game1.player.getLocalPosition(Game1.viewport) + new Vector2((float)(-width) / 2f, (float)(-height) / 2f);
+                Vector2 player_position = Game1.player.getLocalPosition(Game1.viewport) + new Vector2(-width / 2f, -height / 2f);
                 xPositionOnScreen = (int)player_position.X + 32;
                 yPositionOnScreen = (int)player_position.Y - 64;
                 if (xPositionOnScreen + width > Game1.viewport.Width)
@@ -230,9 +230,9 @@ namespace ToolPouch
             for (int i = 0; i < buttons.Count; i++)
             {
                 ClickableTextureComponent button = buttons[i];
-                float radians = Utility.Lerp(0f, (float)Math.PI * 2f, ((float)i / (float)buttons.Count));
-                x = (int)((float)(xPositionOnScreen + width / 2 + (int)(Math.Cos(radians) * (double)buttonRadius) * 4) - (float)button.bounds.Width / 2f);
-                y = (int)((float)(yPositionOnScreen + height / 2 + (int)((0.0 - Math.Sin(radians)) * (double)buttonRadius) * 4) - (float)button.bounds.Height / 2f);
+                float radians = Utility.Lerp(0f, (float)Math.PI * 2f, i / (float)buttons.Count);
+                x = (int)(xPositionOnScreen + width / 2 + (int)(Math.Cos(radians) * buttonRadius) * 4 - button.bounds.Width / 2f);
+                y = (int)(yPositionOnScreen + height / 2 + (int)((0.0 - Math.Sin(radians)) * buttonRadius) * 4 - button.bounds.Height / 2f);
                 button.bounds.X = x;
                 button.bounds.Y = y;
                 if (lowestButtonY < y) lowestButtonY = y;
@@ -249,7 +249,7 @@ namespace ToolPouch
             {
                 buttonRadius = 26;
             }
-            buttonRadius = (int)(animProgress * (float)buttonRadius);
+            buttonRadius = (int)(animProgress * buttonRadius);
 
         }
 

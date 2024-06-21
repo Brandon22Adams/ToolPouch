@@ -13,6 +13,7 @@ using System.Net.Mail;
 using StardewValley.Network.NetEvents;
 using StardewModdingAPI.Utilities;
 using System.Text.Json;
+using ToolPouch.UI;
 
 
 namespace ToolPouch

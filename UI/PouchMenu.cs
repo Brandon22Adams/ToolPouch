@@ -3,12 +3,16 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SpaceCore.UI;
 using StardewValley;
+using StardewValley.Inventories;
 using StardewValley.Menus;
+using System;
 
-namespace ToolPouch
+namespace ToolPouch.UI
 {
     internal class PouchMenu : IClickableMenu
     {
+        public RootElement ui;
+        public InventoryMenu invMenu;
         private class SlotUserData
         {
             public Func<Item, bool> Filter;
@@ -17,32 +21,18 @@ namespace ToolPouch
 
         private Pouch pouch;
 
-        private RootElement ui;
-        private InventoryMenu invMenu;
-
         private ItemSlot slotClicked = null;
 
         private List<ItemSlot> slots = new();
 
         public PouchMenu(Pouch pouch)
-        : base(Game1.uiViewport.Width / 2 - 64 * 6 - IClickableMenu.borderWidth, Game1.uiViewport.Height / 2 - (64 * (pouch.Inventory.Count / 9 + 3)) / 2 - IClickableMenu.borderWidth, 64 * 12, 72 * (pouch.Inventory.Count / 9 + 3) + IClickableMenu.borderWidth * 2)
+        : base(Game1.uiViewport.Width / 2 - 64 * 6 - borderWidth, Game1.uiViewport.Height / 2 - 64 * (pouch.Inventory.Count / 9 + 3) / 2 - borderWidth, 64 * 12, 72 * (pouch.Inventory.Count / 9 + 3) + borderWidth * 2)
         {
             this.pouch = pouch;
             pouch.isOpen.Value = true;
             var data = PouchDataDefinition.GetSpecificData(pouch.ItemId);
 
             invMenu = new(Game1.uiViewport.Width / 2 - 72 * 6 + 8, yPositionOnScreen + height - 64 * 3 - 24, true);
-
-            /* From SatchelMenu.cs What is this doing and what am I missing?
-            for (int ii = 0, ic = 0; ii < Game1.player.Items.Count; ++ii, ++ic)
-            {
-                if (Game1.player.Items[ii] is Satchel s && s.isOpen.Value)
-                {
-                    // TODO: Gamepad support
-                    invMenu.inventory[ic].visible = false;
-                }
-            }
-            */
 
             ui = new();
 
@@ -62,7 +52,7 @@ namespace ToolPouch
 
                     var slot = new ItemSlot()
                     {
-                        LocalPosition = new(ix * 64 + (width - 64 * 9) / 2, iy * 64 + IClickableMenu.borderWidth),
+                        LocalPosition = new(ix * 64 + (width - 64 * 9) / 2, iy * 64 + borderWidth),
                         Item = pouch.Inventory[i],
                         BoxIsThin = true,
                     };
@@ -143,7 +133,7 @@ namespace ToolPouch
                     break;
                 }
 
-                    if (invMenu.actualInventory[slotNum].Stack > 1 && pouch.Inventory.Last() == null) // Stack of items
+                if (invMenu.actualInventory[slotNum].Stack > 1 && pouch.Inventory.Last() == null) // Stack of items
                 {
                     Item grabHalf = invMenu.actualInventory[slotNum].getOne();
                     if (Keyboard.GetState().IsKeyDown(Keys.LeftShift)) // Move half
@@ -151,7 +141,8 @@ namespace ToolPouch
                         grabHalf.Stack = invMenu.actualInventory[slotNum].Stack / 2;
                         pouch.Inventory.DepositItem(grabHalf);
                         invMenu.actualInventory[slotNum].Stack = (int)Math.Ceiling(invMenu.actualInventory[slotNum].Stack / 2f);
-                    } else // Move 1
+                    }
+                    else // Move 1
                     {
                         pouch.Inventory.DepositItem(grabHalf);
                         invMenu.actualInventory[slotNum].Stack = invMenu.actualInventory[slotNum].Stack - 1;
@@ -207,10 +198,10 @@ namespace ToolPouch
                             Item item2 = pouch.Inventory[i];
                             if (grabHalf.canStackWith(item2))
                             {
-                                if(item2.Stack <= 1)
+                                if (item2.Stack <= 1)
                                 {
                                     slot.Item = Game1.player.Items.DepositItem(slot.Item);
-                                } 
+                                }
                                 else
                                 {
                                     Game1.player.addItemToInventory(grabHalf);
@@ -229,15 +220,15 @@ namespace ToolPouch
 
             if (slotClicked != null)
             {
-                var data = (slotClicked.UserData as SlotUserData);
+                var data = slotClicked.UserData as SlotUserData;
                 pouch.Inventory[data.Slot] = slotClicked.Item;
                 slotClicked = null;
             }
 
             foreach (var slot in slots)
             {
-                var data = (slot.UserData as SlotUserData);
-                 slot.Item = pouch.Inventory[data.Slot];
+                var data = slot.UserData as SlotUserData;
+                slot.Item = pouch.Inventory[data.Slot];
             }
 
             ui.Update();
@@ -247,7 +238,7 @@ namespace ToolPouch
 
         public override void draw(SpriteBatch b)
         {
-            IClickableMenu.drawTextureBox(b, xPositionOnScreen - IClickableMenu.borderWidth / 2, yPositionOnScreen, width + IClickableMenu.borderWidth, height, Color.White);
+            drawTextureBox(b, xPositionOnScreen - borderWidth / 2, yPositionOnScreen, width + borderWidth, height, Color.White);
 
             ui.Draw(b);
             invMenu.draw(b);
