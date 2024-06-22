@@ -313,14 +313,18 @@ namespace ToolPouch
         {
             foreach (Farmer farmer in Game1.getOnlineFarmers())
             {
-                for (int i = 0; i < farmer.Items.Count; ++i)
+                if (!farmer.team.globalInventories.ContainsKey("pouch"))
                 {
-                    if (farmer.Items[i] is Pouch pouch)
+                    for (int i = 0; i < farmer.Items.Count; ++i)
                     {
-                        farmer.team.globalInventories.Add("pouch", pouch.Inventory);
+                        if (farmer.Items[i] is Pouch pouch)
+                        {
+                            farmer.team.globalInventories.Add("pouch", pouch.Inventory);
+                        }
                     }
                 }
             }
         }
+
     }
 }
