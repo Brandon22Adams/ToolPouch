@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ToolPouch")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+679fb04c2ba0952b0449a1110be0dc4fcac708ca")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+08f35f40e975007141c19cfe4efd1cc7b08d9389")]
 [assembly: System.Reflection.AssemblyProductAttribute("ToolPouch")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ToolPouch")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

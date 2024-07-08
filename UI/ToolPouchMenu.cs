@@ -45,7 +45,7 @@ namespace ToolPouch.UI
             snapToPlayerPosition();
         }
 
-        public void updateToolList(SortedDictionary<Item, int> dict)
+        public void updateToolList(List<Item> inventory)
         {
             //essentially re init the menu
             gamepadMode = false;
@@ -55,17 +55,21 @@ namespace ToolPouch.UI
             delay = 250;
             moved = false;
 
-            foreach (KeyValuePair<Item, int> kv in dict)
+            for (int i = 0; i < inventory.Count; i++)
             {
-                buttons.Add(new ToolPouchButton(kv.Value, kv.Key, Helper));
-                if (kv.Value == Game1.player.CurrentToolIndex)
+                buttons.Add(new ToolPouchButton(i, inventory[i], Helper));
+                if (i == Game1.player.CurrentToolIndex)
                 {
                     wheelIndex = buttons.Count - 1;
                     buttons[wheelIndex].select();
                 }
+                if(inventory[i] == null)
+                {
+                    break;
+                }
             }
 
-            if (dict.Count < Config.BagCapacity)
+            if (inventory.Count < Config.BagCapacity)
             {
                 buttons.Add(new ToolPouchButton(Config.BagCapacity - 1, null, Helper));
                 if (Config.BagCapacity - 1 == Game1.player.CurrentToolIndex)
@@ -256,8 +260,6 @@ namespace ToolPouch.UI
         public override void draw(SpriteBatch b)
         {
             Game1.StartWorldDrawInUI(b);
-
-
 
             foreach (ToolPouchButton button in buttons)
             {

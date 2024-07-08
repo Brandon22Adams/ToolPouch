@@ -17,11 +17,11 @@ namespace ToolPouch
             }
             for (int i = 0; i < inv.Count; i++)
             {
-                
-                if(i + 1 > itemList.Count)
+
+                if (i + 1 > itemList.Count)
                 {
                     inv[i] = null;
-                } 
+                }
                 else
                 {
                     inv[i] = itemList[i];

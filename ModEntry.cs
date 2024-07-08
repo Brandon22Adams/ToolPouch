@@ -115,7 +115,6 @@ namespace ToolPouch
                 {
                     if (Game1.activeClickableMenu == toolPouchMenu.Value)
                     {
-                        Monitor.Log("closing menu", LogLevel.Trace);
                         toolPouchMenu.Value.closeAndReturnSelected();
                         return;
                     }
@@ -131,8 +130,7 @@ namespace ToolPouch
                     if (Game1.player.Items[i] is Pouch pouch)
                     {
                         inventory.AddRange(pouch.Inventory);
-                        Monitor.Log($"ContextID {Context.ScreenId} Farmer {farmer.Name} with button {e.Button}", LogLevel.Trace);
-                        toolPouchMenu.Value.updateToolList(getToolMap(inventory));
+                        toolPouchMenu.Value.updateToolList(inventory);
                         Game1.activeClickableMenu = toolPouchMenu.Value;
                     }
                 }
@@ -155,7 +153,6 @@ namespace ToolPouch
         public void swapItem()
         {
             int swapIndex = toolPouchMenu.Value.closeAndReturnSelected();
-            Monitor.Log($"selected index is {swapIndex}", LogLevel.Trace);
             if (swapIndex == -1) return;
             swapItem(swapIndex);
         }
@@ -206,25 +203,6 @@ namespace ToolPouch
             {
                 newPouch.Inventory.Sort();
             }
-        }
-
-        private SortedDictionary<Item, int> getToolMap(List<Item> inventory)
-        {
-            SortedDictionary<Item, int> toolMap = new SortedDictionary<Item, int>(new DuplicateKeyComparer<Item>());
-            int count = 0;
-            foreach (Item item in inventory)
-            {
-                if(item != null)
-                {
-                    if (item.Name == null)
-                    {
-                        item.Name = "tempPouchID" + count.ToString();
-                    }
-                    toolMap.Add(item, count);
-                    count++;
-                }
-            }
-            return toolMap;
         }
 
         private bool canOpenMenu(SButton b)
