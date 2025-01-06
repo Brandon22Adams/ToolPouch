@@ -1,4 +1,4 @@
-﻿using System.Xml.Serialization;
+using System.Xml.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
@@ -142,12 +142,12 @@ namespace ToolPouch
             return false;
         }
 
-        public override bool ForEachItem(ForEachItemDelegate handler)
+        public override bool ForEachItem(ForEachItemDelegate handler, GetForEachItemPathDelegate getPath)
         {
-            if (!base.ForEachItem(handler))
+            if (!base.ForEachItem(handler, getPath))
                 return false;
 
-            if (!ForEachItemHelper.ApplyToList(Inventory, handler, true))
+            if (!ForEachItemHelper.ApplyToList(Inventory, handler, getPath))
                 return false;
 
             return true;
